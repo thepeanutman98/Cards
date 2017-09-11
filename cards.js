@@ -13,7 +13,7 @@
  * @param  {String} [extension=".svg"]                                   Extension of image files including .
  * @return {Object<String, HTMLImageElement>}                            Object to get images from by referencing rank + suit
  */
-function getCards(ranks, suits, extras, path = "C:/Users/Adam/Desktop/SVG-cards-1.3/", extension = ".svg") {
+function getCards(ranks, suits, extras, path = "images/", extension = ".svg") {
   var temp = {};
   for (let rank of ranks) {
     for (let suit of suits) {
@@ -32,7 +32,7 @@ function getCards(ranks, suits, extras, path = "C:/Users/Adam/Desktop/SVG-cards-
  * Use like cards["as"] to get image for the Ace of Spades
  * @type {Object<String, HTMLImageElement>}
  */
-const cards = getCards(["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k"], ["h", "d", "c", "s"]);
+const cards = getCards(["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k"], ["h", "d", "c", "s"],["back","empty"]);
 
 /**
  * Allows easier drawing of images of the Canvas
