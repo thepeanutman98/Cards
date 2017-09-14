@@ -649,7 +649,7 @@ class Pile extends Array {
     */
   constructor(...a) {
     super();  // Called to allow later call of pushing all specified Cards to this
-    allStacks.push(this); // Push this to array of allStacks for reference
+    allPiles.push(this); // Push this to array of allStacks for reference
     Object.defineProperties(this, { // Used to define getters and setters
       /**
        * Width of Stack used to calculate corner
