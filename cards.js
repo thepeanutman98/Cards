@@ -488,7 +488,7 @@ canvas.addEventListener("mousedown", function(e) {
     /** @todo Add better logic probably for left/right mouse detection. The division -> boolean method works but is probably not the best */
     card.flipped = Boolean(e.button / 2); // e.button will be 0 if left mouse click and 2 if right mouse click, so dividing by 2 makes it 0 if left click 1 if right click, and then converts it to a Boolean so flipped is false if left click and true if right click
     if (allLoneCards[0] != card) { // Detects if the Card is topmost lone Card (the first in the allLoneCards array)
-      allLoneCards.unshift(allLoneCards.splice(allLoneCards.indexOf(cafrd), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
+      allLoneCards.unshift(allLoneCards.splice(allLoneCards.indexOf(card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
     }
     tick(); // Ticks once Card is determined. This is mainly to redraw the Card immediately so that if it was hidden below another Card, it would jump to the front (because of the directly above code) immediately instead of when you start moving it
   } else { // If the mouse is not on a Card
@@ -553,7 +553,7 @@ canvas.addEventListener("mousemove", function(e) {
         }
       } else if (dragging.type == "stack") { // If a Stack is being dragged
         if (allStacks[0] != dragging.card) { // Detects if the Card is topmost lone Card (the first in the allLoneCards array)
-          allStacks.unshift(allStacks.splice(allStacks.indexOf(card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
+          allStacks.unshift(allStacks.splice(allStacks.indexOf(dragging.card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
         }
       }
       dragging.card.x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
