@@ -482,7 +482,19 @@ canvas.addEventListener("mousedown", function(e) {
        * The mouse down event that triggered the dragging
        * @type {MouseEvent}
        */
-      e: e
+      e: e,
+
+      /**
+       * The timestamp of the start of dragging
+       * @type {Number}
+       */
+      timeStamp: e.timeStamp,
+
+      /**
+       * True if this is a double click, false if not.
+       * @type {Boolean}
+       */
+      doubleClick: e.timeStamp - lastDragged.timeStamp < 500 && card === lastDragged.card
     };
     console.log(dragging); // Logs the value for reference
     /** @todo Add better logic probably for left/right mouse detection. The division -> boolean method works but is probably not the best */
@@ -527,7 +539,19 @@ canvas.addEventListener("mousedown", function(e) {
          * The mouse down event that triggered the dragging
          * @type {MouseEvent}
          */
-        e: e
+        e: e,
+
+        /**
+         * The timestamp of the start of dragging
+         * @type {Number}
+         */
+        timeStamp: e.timeStamp,
+
+        /**
+         * True if this is a double click, false if not.
+         * @type {Boolean}
+         */
+        doubleClick: e.timeStamp - lastDragged.timeStamp < 500 && card === lastDragged.card
       };
       console.log(dragging); // Logs Stack if found otherwise undefined for reference
       stack.flipped = Boolean(e.button / 2); // e.button will be 0 if left mouse click and 2 if right mouse click, so dividing by 2 makes it 0 if left click 1 if right click, and then converts it to a Boolean so flipped is false if left click and true if right click
@@ -564,6 +588,7 @@ canvas.addEventListener("mousemove", function(e) {
 });
 canvas.addEventListener("mouseup", function(e) {
   if (dragging) { // If something is being dragged (this would be false if the mouse was clicked on an empty spot in the Canvas)
+    lastDragged = dragging;
     dragging = false;
   }
   console.log(false); // Logs dragging for reference. Since dragging was just set to false if it was not already false, it will now be false, so false is logged instead
@@ -573,12 +598,30 @@ canvas.addEventListener("mouseup", function(e) {
  * If nothing is currently being dragged, false, if something is being dragged,
  * what is being dragged.
  * @type {Boolean|Object}       dragging
- * @type {Undefined|String}     dragging.type  The type of Object being dragged. Can currently be "card" or "stack"
- * @type {undefined|Card|Stack} dragging.card  The Object being dragged.
- * @type {Number}               dragging.x     X value of the mouse
- * @type {Number}               dragging.y     Y value of the mouse
+ * @type {undefined|String}     dragging.type         The type of Object being dragged. Can currently be "card" or "stack"
+ * @type {undefined|Card|Stack} dragging.card         The Object being dragged.
+ * @type {undefined|Number}     dragging.x            X value of the mouse
+ * @type {undefined|Number}     dragging.y            Y value of the mouse
+ * @type {undefined|MouseEvent} dragging.e            The mouse down event that triggered the dragging
+ * @type {undefined|Number}     dragging.timeStamp    The timestamp of the start of dragging
+ * @type {undefined|Boolean}    dragging.doubleClick  True if this is a double click, false if not
  */
 var dragging = false;
+
+/**
+ * The previous Object to be dragged. Has a nonsense init value of false just
+ * so any lastDragged.card or lastDragged.timeStamp does not throw an error and
+ * instead just returns undefined
+ * @type {undefined|Object}             dragging
+ * @type {undefined|String}     dragging.type         The type of Object that was dragged. Can currently be "card" or "stack"
+ * @type {undefined|Card|Stack} dragging.card         The Object that was dragged.
+ * @type {undefined|Number}     dragging.x            X value of the mouse before last dragging
+ * @type {undefined|Number}     dragging.y            Y value of the mouse before last dragging
+ * @type {undefined|MouseEvent} dragging.e            The mouse down event that triggered the dragging
+ * @type {undefined|Number}     dragging.timeStamp    The timestamp of the start of last dragging
+ * @type {undefined|Boolean}    dragging.doubleClick  True if this is a double click, false if not
+ */
+var lastDragged = false;
 
 canvas.oncontextmenu=()=>(false); // Disables context menu
 
