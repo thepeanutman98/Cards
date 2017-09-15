@@ -612,7 +612,7 @@ var dragging = false;
  * The previous Object to be dragged. Has a nonsense init value of false just
  * so any lastDragged.card or lastDragged.timeStamp does not throw an error and
  * instead just returns undefined
- * @type {undefined|Object}             dragging
+ * @type {undefined|Object}     dragging
  * @type {undefined|String}     dragging.type         The type of Object that was dragged. Can currently be "card" or "stack"
  * @type {undefined|Card|Stack} dragging.card         The Object that was dragged.
  * @type {undefined|Number}     dragging.x            X value of the mouse before last dragging
