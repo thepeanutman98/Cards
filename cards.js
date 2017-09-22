@@ -416,6 +416,37 @@ class Stack extends Array {
         return x >= this.x && x <= this.cornerX && y <= this.y && y >= this.cornerY;
     }
   }
+
+  /**
+   * Detects which Card in the Stack the (x,y) coordinate is inside
+   * @param  {Number}       x                  X coordinate of the point to check
+   * @param  {Number}       y                  Y coordinate of the point to check
+   * @param  {Boolean}      [checkIsIn=false]  Whether to check if point is in the Stack using isIn(x,y) first. This defaults to false, since this function would generally only be called after confirmation that the point is in the Stack
+   * @return {Card|Boolean}                    The Card in the Stack which the point is inside. If checkIsIn is true and if isIn is false, returns false. However, if checkIsIn is false (its default) and the point is not acutally inside the Stack, then this will likely return an error
+   */
+  getSpecCard(x, y, checkIsIn = false) {
+    if (checkIsIn) {
+      if (!this.isIn(x,y)) {
+        return false;
+      }
+    }
+    var index;
+    switch (this.direction) { // Different formulas depending on direction
+      case 0: // Facing forward
+        index = Math.floor((x-this.x)/22.5);
+        break;
+      case Math.PI * 0.5: // Turned 90 deg clockwise
+        index = Math.floor((y-this.y)/22.5);
+        break;
+      case Math.PI: // Turned 180 degrees
+        index = Math.floor((this.x-x)/22.5);
+        break;
+      case Math.PI * 1.5: // Turned 90 deg counterclockwise (270 clockwise)
+        index = Math.floor((this.y-y)/22.5);
+        break;
+    }
+    return this[index < this.length ? index : this.length - 1];
+  }
 }
 
 /**
@@ -620,6 +651,7 @@ canvas.addEventListener("mouseup", function(e) {
  * @type {undefined|MouseEvent} dragging.e            The mouse down event that triggered the dragging
  * @type {undefined|Number}     dragging.timeStamp    The timestamp of the start of dragging
  * @type {undefined|Boolean}    dragging.doubleClick  True if this is a double click, false if not
+ * @type {undefined|Card}       dragging.specCard     The specific single card clicked in a Stack if dragging.card is a Stack, undefined otherwise
  */
 var dragging = false;
 
@@ -635,6 +667,7 @@ var dragging = false;
  * @type {undefined|MouseEvent} dragging.e            The mouse down event that triggered the dragging
  * @type {undefined|Number}     dragging.timeStamp    The timestamp of the start of last dragging
  * @type {undefined|Boolean}    dragging.doubleClick  True if this is a double click, false if not
+ * @type {undefined|Card}       dragging.specCard     The specific single card clicked in a Stack if lastDragged.card is a Stack, undefined otherwise
  */
 var lastDragged = false;
 
