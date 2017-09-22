@@ -586,8 +586,17 @@ canvas.addEventListener("mousemove", function(e) {
           allStacks.unshift(allStacks.splice(allStacks.indexOf(dragging.card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
         }
       }
-      dragging.card.x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
-      dragging.card.y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
+      if (dragging.type == "card") { // If a card is being dragged
+        dragging.card.x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
+        dragging.card.y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
+      } else if (dragging.type == "stack") { // If a Stack is being dragged
+        if (dragging.doubleClick) { // If the Stack was double clicked
+          dragging.card.x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
+          dragging.card.y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
+        } else {
+
+        }
+      }
       tick(); // Redraws position changes
     }
   }
