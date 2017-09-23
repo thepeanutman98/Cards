@@ -14,7 +14,7 @@
  * @return {Object<String, HTMLImageElement>}                            Object to get images from by referencing rank + suit
  */
 function getCards(ranks, suits, extras, path = "images/", extension = ".svg") {
-  var temp = {};
+  let temp = {};
   for (let rank of ranks) {
     for (let suit of suits) {
       temp[rank + suit] = new Image();
@@ -216,19 +216,19 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
  * Array of all Cards
  * @type {Array<Card>}
  */
-var allCards = [];
+let allCards = [];
 
 /**
  * Array of all Stacks
  * @type {Array<Stack>}
  */
-var allStacks = [];
+let allStacks = [];
 
 /**
  * Array of all Piles
  * @type {Array<Pile>}
  */
-var allPiles = [];
+let allPiles = [];
 
 /**
  * Class for card Stacks, which are Cards layed out so that all Cards in the
@@ -430,7 +430,7 @@ class Stack extends Array {
         return false;
       }
     }
-    var index;
+    let index;
     switch (this.direction) { // Different formulas depending on direction
       case 0: // Facing forward
         index = Math.floor((x-this.x)/22.5);
@@ -453,7 +453,7 @@ class Stack extends Array {
  * A sample Stack for testing
  * @type {Stack}
  */
-var test = new Stack(600, 200, new Card("as"), new Card("ah"), new Card("ac"), new Card("ad"));
+let test = new Stack(600, 200, new Card("as"), new Card("ah"), new Card("ac"), new Card("ad"));
 
 /**
  * Handler for mouse downs.
@@ -467,7 +467,7 @@ canvas.addEventListener("mousedown", function(e) {
    * X position of the mouse relative to the document
    * @type {Number}
    */
-  var x = e.clientX,
+  let x = e.clientX,
 
   /**
    * Y position of the mouse relative to the document
@@ -535,7 +535,7 @@ canvas.addEventListener("mousedown", function(e) {
     }
     tick(); // Ticks once Card is determined. This is mainly to redraw the Card immediately so that if it was hidden below another Card, it would jump to the front (because of the directly above code) immediately instead of when you start moving it
   } else { // If the mouse is not on a Card
-    var stack = allStacks.find((a) => (a.isIn(x, y))); // Tries to find a Stack that the mouse is in
+    let stack = allStacks.find((a) => (a.isIn(x, y))); // Tries to find a Stack that the mouse is in
     console.log(stack); // Logs Stack if found otherwise undefined for reference
     if (stack) { // If Stack was found
       dragging = {
@@ -653,7 +653,7 @@ canvas.addEventListener("mouseup", function(e) {
  * @type {undefined|Boolean}    dragging.doubleClick  True if this is a double click, false if not
  * @type {undefined|Card}       dragging.specCard     The specific single card clicked in a Stack if dragging.card is a Stack, undefined otherwise
  */
-var dragging = false;
+let dragging = false;
 
 /**
  * The previous Object to be dragged. Has a nonsense init value of false just
@@ -669,7 +669,7 @@ var dragging = false;
  * @type {undefined|Boolean}    dragging.doubleClick  True if this is a double click, false if not
  * @type {undefined|Card}       dragging.specCard     The specific single card clicked in a Stack if lastDragged.card is a Stack, undefined otherwise
  */
-var lastDragged = false;
+let lastDragged = false;
 
 canvas.oncontextmenu=()=>(false); // Disables context menu
 
@@ -706,7 +706,7 @@ function tick() {
  * Cards)
  * @type {Array<Card>}
  */
-var allLoneCards = [new Card("ac", 77.5, 10), new Card("ad", 55, 10), new Card("ah", 32.5, 10), new Card("as", 10, 10)];
+let allLoneCards = [new Card("ac", 77.5, 10), new Card("ad", 55, 10), new Card("ah", 32.5, 10), new Card("as", 10, 10)];
 
 cards.empty.addEventListener("load", function() { // When the final card (since empty is the last in the extras list in cards=getCards...) image is loaded
   tick(); // Draw everything
@@ -869,13 +869,13 @@ class Pile extends Array {
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.direction);
-        for (var i of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
+        for (let i of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
           draw(cards.empty, this.x - (i + 1) * 2, this.y - (i + 1) * 2);
         }
         this[0].draw();
         ctx.restore();
       } else {
-        for (var j of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
+        for (let j of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
           draw(cards.empty, this.x - (j + 1) * 2, this.y - (j + 1) * 2);
         }
         this[0].draw();
@@ -907,10 +907,10 @@ class Pile extends Array {
  * An Array holding one of each of a normal deck of Cards.
  * @type {Array<Card>}
  */
-var fullDeck = [];
+let fullDeck = [];
 
-for (var i of ["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k"]) { // Iterates over ranks
-  for (var j of ["h", "d", "c", "s"]) { // Iterates over suits
+for (let i of ["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k"]) { // Iterates over ranks
+  for (let j of ["h", "d", "c", "s"]) { // Iterates over suits
     fullDeck.push(new Card(i + j)); // Creates Card of rank and suit iterators and pushes to Array
   }
 }
@@ -920,4 +920,4 @@ for (var i of ["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k"]) { // Iterates ov
  * other samples) with the fullDeck of Cards
  * @type {Pile}
  */
-var tester = new Pile(300, 200, ...fullDeck);
+let tester = new Pile(300, 200, ...fullDeck);
