@@ -39,23 +39,17 @@ let allPiles = [];
 let allLoneCards = [];
 
 /**
- * Array of all Objects (Cards, Stacks, and Piles) in order of top to bottom.
- * @type {Array}
- */
-let allObjects = [];
-
-/**
  * If nothing is currently being dragged, false, if something is being dragged,
  * what is being dragged.
  * @type {Boolean|Object}       dragging
  * @type {undefined|String}     dragging.type         The type of Object being dragged. Can currently be "card" or "stack"
- * @type {undefined|Card|Stack} dragging.object       The Object being dragged.
+ * @type {undefined|Card|Stack} dragging.card         The Object being dragged.
  * @type {undefined|Number}     dragging.x            X value of the mouse
  * @type {undefined|Number}     dragging.y            Y value of the mouse
  * @type {undefined|MouseEvent} dragging.e            The mouse down event that triggered the dragging
  * @type {undefined|Number}     dragging.timeStamp    The timestamp of the start of dragging
  * @type {undefined|Boolean}    dragging.doubleClick  True if this is a double click, false if not
- * @type {undefined|Card}       dragging.specCard     The specific single card clicked in a Stack if dragging.object is a Stack, undefined otherwise
+ * @type {undefined|Card}       dragging.specCard     The specific single card clicked in a Stack if dragging.card is a Stack, undefined otherwise
  */
 let dragging = false;
 
@@ -65,7 +59,7 @@ let dragging = false;
  * instead just returns undefined
  * @type {undefined|Object}     dragging
  * @type {undefined|String}     dragging.type         The type of Object that was dragged. Can currently be "card" or "stack"
- * @type {undefined|Card|Stack} dragging.object       The Object that was dragged.
+ * @type {undefined|Card|Stack} dragging.card         The Object that was dragged.
  * @type {undefined|Number}     dragging.x            X value of the mouse before last dragging
  * @type {undefined|Number}     dragging.y            Y value of the mouse before last dragging
  * @type {undefined|MouseEvent} dragging.e            The mouse down event that triggered the dragging
@@ -147,13 +141,22 @@ function draw(e, x, y, b = 0.5) {
  * arrays to ensure that the first item of each array is drawn above all others,
  * the second layered one down from the first, the third layered one down from
  * the second, etc.
+ * @todo Eventually combine allPiles, allStacks, and allLoneCards into one
+ * allObjects array. This would allow, for example, a Stack to be on top of a
+ * lone Card, which due to current ordering cannot be done now. Would need to
+ * heavily modify all code to use allObjects instead of the others, but most of
+ * the work would just be find -> replace.
  */
 function tick() {
   clearCanvas(); // Clear canvas before drawing
-  allObjects.slice().reverse().forEach(function(a) { // Iterates through allObjects from allObjects[0] to allObjects[allObjects.length-1] (the last)
-    if ((a.constructor.name.toLowerCase() === "card" ? allLoneCards.includes(a) : true)) {
-      a.draw(); // Draws the Pile
-    }
+  allPiles.slice().reverse().forEach(function(a) { // Iterates through allPiles from allPiles[0] to allPiles[allPiles.length-1] (the last)
+    a.draw(); // Draws the Pile
+  });
+  allStacks.slice().reverse().forEach(function(a) { // Iterates through allStacks from allStacks[0] to allStacks[allStacks.length-1] (the last)
+    a.draw(); // Draws the Stack
+  });
+  allLoneCards.slice().reverse().forEach(function(a) { // Iterates through allLoneCards from allLoneCards[0] to allLoneCards[allLoneCards.length-1] (the last)
+    a.draw(); // Draws the Card
   });
 }
 
@@ -282,9 +285,6 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
   // Adds this Card to list of all Cards
   allCards.push(this);
 
-  // Adds this Object to list of all Objects
-  allObjects.push(this);
-
   /**
    * Detects whether a given point (x,y) is inside the Card.
    * @param  {Number} x  X coordinate of the point to check
@@ -331,7 +331,6 @@ class Stack extends Array {
   constructor(...a) {
     super();  // Called to allow later call of pushing all specified Cards to this
     allStacks.push(this); // Push this to array of allStacks for reference
-    allObjects.push(this); // Push this to array of allObjects for reference
     Object.defineProperties(this, { // Used to define getters and setters
       /**
        * Width of Stack used to calculate corner
@@ -552,24 +551,26 @@ canvas.addEventListener("mousedown", function(e) {
     y = e.clientY,
 
     /**
-     * If the mouse is in any Object, the Object the mouse is in. If not, undefined.
-     * @type {Card|Stack|Pile|undefined}
+     * If the mouse is in any lone Card, the lone Card the mouse is in. If not, undefined.
+     * @type {Card|undefined}
      */
-     object = allObjects.find((a) => ((a.type === "card" ? allLoneCards.includes(a) : true) && a.isIn(x, y))); // Tries to find a lone Card that the mouse is in
-  if (object) { // If the mouse is in an Object
+    card = allLoneCards.find((a) => (a.isIn(x, y))); // Tries to find a lone Card that the mouse is in
+  if (card) { // If the mouse is in a lone Card
     dragging = {
 
       /**
-       * The type of Object being dragged. Can currently be "card", "stack", or "pile"
+       * The type of Object being dragged. Can currently be "card" or "stack"
        * @type {String}
+       * @todo Need to add "pile" when pile dragging is added
        */
-      type: object.constructor.name.toLowerCase(),
+      type: "card",
 
       /**
        * The Object being dragged.
-       * @type {Card|Stack|Pile}
+       * @type {Card|Stack}
+       * @todo Change name ("card") to something more general (like "subject" or something), since now it can be a Card or Stack (and soon to be Pile)
        */
-      object: object,
+      card: card,
 
       /**
        * X value of the mouse
@@ -599,21 +600,78 @@ canvas.addEventListener("mousedown", function(e) {
        * True if this is a double click, false if not.
        * @type {Boolean}
        */
-      doubleClick: e.timeStamp - lastDragged.timeStamp < 500 && object === lastDragged.object,
-
-      /**
-       * The specific single card clicked in a Stack if dragging.object is a Stack, undefined otherwise
-       * @type {Card}
-       */
-      specCard: (object.constructor.name.toLowerCase() === "stack") ? object.getSpecCard(x, y) : undefined,
+      doubleClick: e.timeStamp - lastDragged.timeStamp < 500 && card === lastDragged.card,
     };
     console.log(dragging); // Logs the value for reference
     /** @todo Add better logic probably for left/right mouse detection. The division -> boolean method works but is probably not the best */
-    object.flipped = Boolean(e.button / 2); // e.button will be 0 if left mouse click and 2 if right mouse click, so dividing by 2 makes it 0 if left click 1 if right click, and then converts it to a Boolean so flipped is false if left click and true if right click
-    if (allObjects[0] !== object) { // Detects if the Object is topmost Object (the first in the allObjects array)
-      allObjects.unshift(allObjects.splice(allObjects.indexOf(object), 1)[0]); // Gets index of the Card, splices it out of allObjects, then unshifts it to add it to the beginning, which basically moves it to the top
+    card.flipped = Boolean(e.button / 2); // e.button will be 0 if left mouse click and 2 if right mouse click, so dividing by 2 makes it 0 if left click 1 if right click, and then converts it to a Boolean so flipped is false if left click and true if right click
+    if (allLoneCards[0] !== card) { // Detects if the Card is topmost lone Card (the first in the allLoneCards array)
+      allLoneCards.unshift(allLoneCards.splice(allLoneCards.indexOf(card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
     }
     tick(); // Ticks once Card is determined. This is mainly to redraw the Card immediately so that if it was hidden below another Card, it would jump to the front (because of the directly above code) immediately instead of when you start moving it
+  } else { // If the mouse is not on a Card
+    let stack = allStacks.find((a) => (a.isIn(x, y))); // Tries to find a Stack that the mouse is in
+    console.log(stack); // Logs Stack if found otherwise undefined for reference
+    if (stack) { // If Stack was found
+      dragging = {
+
+        /**
+         * The type of Object being dragged. Can currently be "card" or "stack"
+         * @type {String}
+         * @todo Need to add "pile" when pile dragging is added
+         */
+        type: "stack",
+
+        /**
+         * The Object being dragged.
+         * @type {Card|Stack}
+         * @todo Change name ("card") to something more general (like "subject" or something), since now it can be a Card or Stack (and soon to be Pile)
+         */
+        card: stack,
+
+        /**
+         * X value of the mouse
+         * @type {Number}
+         */
+        x: x,
+
+        /**
+         * Y value of the mouse
+         * @type {Number}
+         */
+        y: y,
+
+        /**
+         * The mouse down event that triggered the dragging
+         * @type {MouseEvent}
+         */
+        e: e,
+
+        /**
+         * The timestamp of the start of dragging
+         * @type {Number}
+         */
+        timeStamp: e.timeStamp,
+
+        /**
+         * True if this is a double click, false if not.
+         * @type {Boolean}
+         */
+        doubleClick: e.timeStamp - lastDragged.timeStamp < 500 && stack === lastDragged.card,
+
+        /**
+         * The specific single card clicked in a Stack if dragging.card is a Stack, undefined otherwise
+         * @type {Card}
+         */
+        specCard: stack.getSpecCard(x, y),
+      };
+      console.log(dragging); // Logs Stack if found otherwise undefined for reference
+      stack.flipped = Boolean(e.button / 2); // e.button will be 0 if left mouse click and 2 if right mouse click, so dividing by 2 makes it 0 if left click 1 if right click, and then converts it to a Boolean so flipped is false if left click and true if right click
+      if (allStacks[0] !== card) { // Detects if the Card is topmost lone Card (the first in the allLoneCards array)
+        allStacks.unshift(allStacks.splice(allStacks.indexOf(card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
+      }
+      tick(); // Ticks once Card is determined. This is mainly to redraw the Card immediately so that if it was hidden below another Card, it would jump to the front (because of the directly above code) immediately instead of when you start moving it
+    }
   }
 });
 
@@ -623,20 +681,30 @@ canvas.addEventListener("mousedown", function(e) {
  */
 canvas.addEventListener("mousemove", function(e) {
   if (dragging) { // If something is being dragged (no else, so if not, nothing happens; keep in mind, this is called every time the mouse is moved, so almost all calls will be dismissed)
-    if (dragging.type === "card") { // If a card is being dragged
-      allObjects[0].x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
-      allObjects[0].y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
-    } else if (dragging.type === "stack") { // If a Stack is being dragged
-      if (dragging.doubleClick) { // If the Stack was double clicked
-        allObjects[0].x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
-        allObjects[0].y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
-      } else {
-        console.log("single clicked stack");
+    if (e.movementX || e.movementY) { /** @todo Check if having this if statement is redundant */ // If the mouse was actually moved, for redundancy (might be overly redundant and unneccessary)
+      /** @todo Might not need anymore since it should be done in the onmousedown handler */
+      if (dragging.type === "card") { // If a card is being dragged
+        if (allLoneCards[0] !== dragging.card) { // Detects if the Card is topmost lone Card (the first in the allLoneCards array)
+          allLoneCards.unshift(allLoneCards.splice(allLoneCards.indexOf(dragging.card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
+        }
+      } else if (dragging.type === "stack") { // If a Stack is being dragged
+        if (allStacks[0] !== dragging.card) { // Detects if the Card is topmost lone Card (the first in the allLoneCards array)
+          allStacks.unshift(allStacks.splice(allStacks.indexOf(dragging.card), 1)[0]); // Gets index of the Card, splices it out of allLoneCards, then unshifts it to add it to the beginning, which basically moves it to the top
+        }
       }
-    } else {
-      console.log("object type not recognized in mousemove");
+      if (dragging.type === "card") { // If a card is being dragged
+        dragging.card.x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
+        dragging.card.y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
+      } else if (dragging.type === "stack") { // If a Stack is being dragged
+        if (dragging.doubleClick) { // If the Stack was double clicked
+          dragging.card.x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
+          dragging.card.y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
+        } else {
+
+        }
+      }
+      tick(); // Redraws position changes
     }
-    tick(); // Redraws position changes
   }
 });
 canvas.addEventListener("mouseup", function() {
@@ -682,7 +750,6 @@ class Pile extends Array {
   constructor(...a) {
     super();  // Called to allow later call of pushing all specified Cards to this
     allPiles.push(this); // Push this to array of allStacks for reference
-    allObjects.push(this); // Push this to array of allObjects for reference
     Object.defineProperties(this, { // Used to define getters and setters
       /**
        * Width of Stack used to calculate corner
