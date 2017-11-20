@@ -104,7 +104,7 @@ function getCards(ranks, suits, extras, path = "images/", extension = ".svg") {
  * Use like cards["as"] to get image for the Ace of Spades
  * @type {Object<String, HTMLImageElement>}
  */
-const cards = getCards(["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k", ], ["h", "d", "c", "s", ], ["back", "empty", ]);
+const cards = getCards(["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k", ], ["h", "d", "c", "s", ], ["back", "empty", "outline", ]);
 
 /**
  * Clears canvas by drawing a large, clear rectangle from the origin to the
@@ -460,11 +460,17 @@ class Stack extends Array {
       ctx.rotate(this.direction); // Rotates Canvas about new origin
       this.forEach(function(a, b) { // Iterates through each Card in the Stack
         draw(this.flipped ? cards.back : a.image, (b * s * this[0].size), 0, this[0].size); // Draws the Card with proper distance apart
+        if (dragging.specCard && !dragging.doubleClick && a === dragging.specCard) {
+          draw(cards.outline, (b * s * this[0].size), 0, this[0].size); // Draws the Card with proper distance apart
+        }
       }, this);
       ctx.restore(); // Resets rotation by restoring Canvas state
     } else { // If rotation is not neccessary
       this.forEach(function(a, b) { // Iterates through each Card in the Stack
         draw(this.flipped ? cards.back : a.image, this.x + (b * s * this[0].size), this.y, this[0].size); // Draws the Card with proper distance apart. this.x and this.y neccessary since Canvas origin is not being transalted
+        if (dragging.specCard && !dragging.doubleClick && a === dragging.specCard) {
+          draw(cards.outline, this.x + (b * s * this[0].size), this.y, this[0].size); // Draws the Card with proper distance apart. this.x and this.y neccessary since Canvas origin is not being transalted
+        }
       }, this);
     }
   }
@@ -647,6 +653,7 @@ canvas.addEventListener("mouseup", function() {
     dragging = false;
   }
   console.log(false); // Logs dragging for reference. Since dragging was just set to false if it was not already false, it will now be false, so false is logged instead
+  tick();
 });
 
 canvas.oncontextmenu=()=>(false); // Disables context menu
@@ -813,16 +820,23 @@ class Pile extends Array {
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.direction);
-        for (let i of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
+        let i;
+        for (i of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
           draw(cards.empty, this.x - (i + 1) * 2, this.y - (i + 1) * 2);
         }
         this[0].draw();
+        if (dragging.object === this && !dragging.doubleClick) {
+          draw(cards.outline, this.x, this.y);
+        }
         ctx.restore();
       } else {
         for (let j of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
           draw(cards.empty, this.x - (j + 1) * 2, this.y - (j + 1) * 2);
         }
         this[0].draw();
+        if (dragging.object === this && !dragging.doubleClick) {
+          draw(cards.outline, this.x, this.y);
+        }
       }
     }
   }
