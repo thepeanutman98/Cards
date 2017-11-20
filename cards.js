@@ -685,7 +685,7 @@ class Pile extends Array {
        */
       width: {
         get: function() {
-          return this[0] ? ((this.length - 1) * 45 * this[0].size) + (this[0].image.naturalWidth * this[0].size) : undefined;
+          return this[0] ? this[0].image.naturalWidth * this[0].size : undefined;
         },
       },
 
