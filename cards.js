@@ -594,7 +594,7 @@ canvas.addEventListener("mousedown", function(e) {
        * True if this is a double click, false if not.
        * @type {Boolean}
        */
-      doubleClick: e.timeStamp - lastDragged.timeStamp < 500 && object === lastDragged.object,
+      doubleClick: ((e.timeStamp - lastDragged.timeStamp) < 500) && (object === lastDragged.object),
 
       /**
        * The specific single card clicked in a Stack if dragging.object is a Stack, undefined otherwise
