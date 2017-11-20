@@ -628,8 +628,15 @@ canvas.addEventListener("mousemove", function(e) {
       } else {
         console.log("single clicked stack");
       }
+    } else if (dragging.type === "pile") { // If a Stack is being dragged
+      if (dragging.doubleClick) { // If the Stack was double clicked
+        allObjects[0].x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
+        allObjects[0].y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
+      } else {
+        console.log("single clicked pile");
+      }
     } else {
-      console.log("object type not recognized in mousemove");
+      console.log("object type not recognized in mousemove", dragging);
     }
     tick(); // Redraws position changes
   }
