@@ -151,9 +151,7 @@ function draw(e, x, y, b = 0.5) {
 function tick() {
   clearCanvas(); // Clear canvas before drawing
   allObjects.slice().reverse().forEach(function(a) { // Iterates through allObjects from allObjects[0] to allObjects[allObjects.length-1] (the last)
-    if ((a.constructor.name.toLowerCase() === "card" ? allLoneCards.includes(a) : true)) {
-      a.draw(); // Draws the Pile
-    }
+    a.draw(); // Draws the Object
   });
 }
 
@@ -281,9 +279,6 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
 
   // Adds this Card to list of all Cards
   allCards.push(this);
-
-  // Adds this Object to list of all Objects
-  allObjects.push(this);
 
   /**
    * Detects whether a given point (x,y) is inside the Card.
@@ -555,7 +550,7 @@ canvas.addEventListener("mousedown", function(e) {
      * If the mouse is in any Object, the Object the mouse is in. If not, undefined.
      * @type {Card|Stack|Pile|undefined}
      */
-     object = allObjects.find((a) => ((a.type === "card" ? allLoneCards.includes(a) : true) && a.isIn(x, y))); // Tries to find a lone Card that the mouse is in
+     object = allObjects.find((a) => (a.isIn(x, y))); // Tries to find a lone Card that the mouse is in
   if (object) { // If the mouse is in an Object
     dragging = {
 
@@ -864,4 +859,4 @@ for (let i of ["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k", ]) { // Iterates 
  */
 let tester = new Pile(300, 200, ...fullDeck);
 
-allLoneCards.push(new Card("ac", 77.5, 10), new Card("ad", 55, 10), new Card("ah", 32.5, 10), new Card("as", 10, 10)); // Adds samples spaced apart like a Stack (just similar in the distance between Cards)
+allObjects.push(new Card("ac", 77.5, 10), new Card("ad", 55, 10), new Card("ah", 32.5, 10), new Card("as", 10, 10)); // Adds samples spaced apart like a Stack (just similar in the distance between Cards)
