@@ -607,6 +607,13 @@ canvas.addEventListener("mousedown", function(e) {
        * @type {Card}
        */
       specCard: (object.constructor.name.toLowerCase() === "stack") ? object.getSpecCard(x, y) : undefined,
+      
+      /**
+       * Whether or not the card has actually been moved yet (if movemouse has been dispatched yet).
+       * Defaults to false, since the Object has not been moved when it has just been clicked.
+       * @type {Boolean}
+       */
+      draggedYet: false
     };
     console.log(dragging); // Logs the value for reference
     /** @todo Add better logic probably for left/right mouse detection. The division -> boolean method works but is probably not the best */
