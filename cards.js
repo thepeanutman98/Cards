@@ -659,6 +659,67 @@ canvas.addEventListener("mousedown", function(e) {
  */
 canvas.addEventListener("mousemove", function(e) {
   if (dragging) { // If something is being dragged (no else, so if not, nothing happens; keep in mind, this is called every time the mouse is moved, so almost all calls will be dismissed)
+    dragging.x = e.clientX;
+    dragging.y = e.clientY;
+    if (!dragging.draggedYet) {
+      if (dragging.type === "card") { // If a card is being dragged
+      } else if (dragging.type === "stack") { // If a Stack is being dragged
+        if (dragging.doubleClick) { // If the Stack was double clicked
+          console.log("first time double clicked stack");
+        } else {
+          allObjects.unshift(dragging.object.splice(dragging.specCardIndex, 1)[0]);
+          let specCardIndex = dragging.specCardIndex;
+          dragging = {
+            type: "card",
+            object: allObjects[0],
+            x: e.clientX,
+            y: e.clientY,
+            e: e,
+            timeStamp: e.timeStamp,
+            doubleClick: false,
+            draggedYet: true,
+            index: 0,
+          };
+          switch (allObjects[0].direction) { // Different formulas depending on direction
+            case 0: // Facing forward
+              allObjects[0].x = allObjects[1].x + (specCardIndex * 22.5);
+              allObjects[0].y = allObjects[1].y;
+              break;
+            case Math.PI * 0.5: // Turned 90 deg clockwise
+              allObjects[0].x = allObjects[1].x;
+              allObjects[0].y = allObjects[1].y + (specCardIndex * 22.5);
+              break;
+            case Math.PI:  // Turned 180 degrees
+              allObjects[0].x = allObjects[1].x - (specCardIndex * 22.5);
+              allObjects[0].y = allObjects[1].y;
+              break;
+            case Math.PI * 1.5: // Turned 90 deg counterclockwise (270 clockwise)
+              allObjects[0].x = allObjects[1].x;
+              allObjects[0].y = allObjects[1].y - (specCardIndex * 22.5);
+              break;
+          }
+          allObjects[0].direction = allObjects[1].direction;
+        }
+      } else if (dragging.type === "pile") { // If a Stack is being dragged
+        if (dragging.doubleClick) { // If the Stack was double clicked
+          console.log("first double clicked pile");
+        } else {
+          allObjects.unshift(dragging.object.shift());
+          dragging = {
+            type: "card",
+            object: allObjects[0],
+            x: e.clientX,
+            y: e.clientY,
+            e: e,
+            timeStamp: e.timeStamp,
+            doubleClick: false,
+            draggedYet: true,
+            index: 0,
+          };
+        }
+      }
+      dragging.draggedYet = true;
+    }
     if (dragging.type === "card") { // If a card is being dragged
       allObjects[0].x += e.movementX; // Updates x position of the Card by adding mouse movement to the current x position
       allObjects[0].y += e.movementY; // Updates x position of the Card by adding mouse movement to the current x position
