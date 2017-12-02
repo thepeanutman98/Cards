@@ -156,6 +156,16 @@ function tick() {
 }
 
 /**
+ * A basic data validator specificically to avoid problems when using 
+ * [].findIndex or [].indexOf since that returns -1 instead of an error.
+ * @param  {Number} num     The number to check
+ * @return {Number|NaN}     If the number is positive, the number; if not, NaN
+ */
+function negCheck(num) {
+  return num < 0 ? NaN : num;
+}
+
+/**
  * Constructor for cards.
  * @param       {String} a                                    Card rank + suit (e.g. "as" for Ace of Spades)
  * @param       {Number} [x=0]                                X position of top corner of card
