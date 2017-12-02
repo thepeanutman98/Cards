@@ -562,11 +562,17 @@ canvas.addEventListener("mousedown", function(e) {
    */
     y = e.clientY,
 
-    /**
-     * If the mouse is in any Object, the Object the mouse is in. If not, undefined.
-     * @type {Card|Stack|Pile|undefined}
-     */
-     object = allObjects.find((a) => (a.isIn(x, y))); // Tries to find a lone Card that the mouse is in
+  /**
+   * If the mouse is in any Object, the index of allObjects corresponding to the Object the mouse is in. If not, -1.
+   * @type {Number}
+   */
+  index = allObjects.findIndex((a) => (a.isIn(x, y))), // Tries to find the index of a lone Card that the mouse is in
+
+  /**
+   * If the mouse is in any Object, the Object the mouse is in. If not, undefined.
+   * @type {Card|Stack|Pile|undefined}
+   */
+   object = allObjects[index];
   if (object) { // If the mouse is in an Object
     dragging = {
 
@@ -614,16 +620,28 @@ canvas.addEventListener("mousedown", function(e) {
 
       /**
        * The specific single card clicked in a Stack if dragging.object is a Stack, undefined otherwise
-       * @type {Card}
+       * @type {Card|undefined}
        */
       specCard: (object.constructor.name.toLowerCase() === "stack") ? object.getSpecCard(x, y) : undefined,
-      
+
+      /**
+       * If dragging.object is a Stack, the index of the specific single card clicked, undefined otherwise
+       * @type {Number|undefined}
+       */
+      specCardIndex: (object.constructor.name.toLowerCase() === "stack") ? object.indexOf(object.getSpecCard(x, y)) : undefined,
+
       /**
        * Whether or not the card has actually been moved yet (if movemouse has been dispatched yet).
        * Defaults to false, since the Object has not been moved when it has just been clicked.
        * @type {Boolean}
        */
-      draggedYet: false
+      draggedYet: false,
+
+      /**
+       * If the mouse is in any Object, the index of allObjects corresponding to the Object the mouse is in. If not, -1.
+       * @type {Number}
+       */
+      index: index,
     };
     console.log(dragging); // Logs the value for reference
     /** @todo Add better logic probably for left/right mouse detection. The division -> boolean method works but is probably not the best */
