@@ -200,9 +200,14 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
   this.image = d[a];
 
   /**
+   * False for no outline, "stack" or "pile" for showing an outline similar to
+   * where the next card would be if it was in a Stack or Pile, respectively
+   * @type {String|Boolean}
+   */
+  this.outline = false;
+
+  /**
    * Draw Card with current flipped state, (x,y) position, and size
-   * @return {[type]} [description]
-   * @todo Add direction support
    */
   this.draw = function() {
     if (this.direction) {
@@ -210,9 +215,25 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
       ctx.translate(this.x, this.y);
       ctx.rotate(this.direction);
       draw(this.flipped ? cards.back : this.image, 0, 0, this.size);
+      if (this.outline) {
+        if (this.outline === "stack") {
+          draw(cards.outline, 22.5, 0, this.size);
+        } else if (this.outline === "pile") {
+          draw(cards.outline, 2, 2, this.size);
+        }
+        this.outline = false;
+      }
       ctx.restore();
     } else {
       draw(this.flipped ? cards.back : this.image, this.x, this.y, this.size);
+      if (this.outline) {
+        if (this.outline === "stack") {
+          draw(cards.outline, this.x + 22.5, this.y, this.size);
+        } else if (this.outline === "pile") {
+          draw(cards.outline, this.x + 2, this.y + 2, this.size);
+        }
+        this.outline = false;
+      }
     }
   };
 
@@ -563,121 +584,122 @@ class Stack extends Array {
  * @todo Add Pile moving
  */
 canvas.addEventListener("mousedown", function(e) {
+  if (!dragging) {
+    /**
+     * X position of the mouse relative to the document
+     * @type {Number}
+     */
+    let x = e.clientX,
 
-  /**
-   * X position of the mouse relative to the document
-   * @type {Number}
-   */
-  let x = e.clientX,
+    /**
+     * Y position of the mouse relative to the document
+     * @type {Number}
+     */
+      y = e.clientY,
 
-  /**
-   * Y position of the mouse relative to the document
-   * @type {Number}
-   */
-    y = e.clientY,
+    /**
+     * If the mouse is in any Object, the index of allObjects corresponding to the Object the mouse is in. If not, -1.
+     * @type {Number}
+     */
+    index = allObjects.findIndex((a) => (a.isIn(x, y))), // Tries to find the index of a lone Card that the mouse is in
 
-  /**
-   * If the mouse is in any Object, the index of allObjects corresponding to the Object the mouse is in. If not, -1.
-   * @type {Number}
-   */
-  index = allObjects.findIndex((a) => (a.isIn(x, y))), // Tries to find the index of a lone Card that the mouse is in
-
-  /**
-   * If the mouse is in any Object, the Object the mouse is in. If not, undefined.
-   * @type {Card|Stack|Pile|undefined}
-   */
-   object = allObjects[index];
-  if (object) { // If the mouse is in an Object
-    let type = object.constructor.name.toLowerCase();
-    if (e.button === 0) { // left mouse button
-      if (object.flipped) {
-        if (type === "stack" || type === "pile") {
-          object.reverse();
+    /**
+     * If the mouse is in any Object, the Object the mouse is in. If not, undefined.
+     * @type {Card|Stack|Pile|undefined}
+     */
+     object = allObjects[index];
+    if (object) { // If the mouse is in an Object
+      let type = object.constructor.name.toLowerCase();
+      if (e.button === 0) { // left mouse button
+        if (object.flipped) {
+          if (type === "stack" || type === "pile") {
+            object.reverse();
+          }
+          object.flipped = false;
         }
-        object.flipped = false;
-      }
-    } else if (e.button === 2) { // right mouse button
-      if (!object.flipped) {
-        if (type === "stack" || type === "pile") {
-          object.reverse();
+      } else if (e.button === 2) { // right mouse button
+        if (!object.flipped) {
+          if (type === "stack" || type === "pile") {
+            object.reverse();
+          }
+          object.flipped = true;
         }
-        object.flipped = true;
       }
+      dragging = {
+
+        /**
+         * The type of Object being dragged. Can currently be "card", "stack", or "pile"
+         * @type {String}
+         */
+        type: type,
+
+        /**
+         * The Object being dragged.
+         * @type {Card|Stack|Pile}
+         */
+        object: object,
+
+        /**
+         * X value of the mouse
+         * @type {Number}
+         */
+        x: x,
+
+        /**
+         * Y value of the mouse
+         * @type {Number}
+         */
+        y: y,
+
+        /**
+         * The mouse down event that triggered the dragging
+         * @type {MouseEvent}
+         */
+        e: e,
+
+        /**
+         * The timestamp of the start of dragging
+         * @type {Number}
+         */
+        timeStamp: e.timeStamp,
+
+        /**
+         * True if this is a double click, false if not.
+         * @type {Boolean}
+         */
+        doubleClick: ((e.timeStamp - lastDragged.timeStamp) < 500) && (object === lastDragged.object),
+
+        /**
+         * The specific single card clicked in a Stack if dragging.object is a Stack, undefined otherwise
+         * @type {Card|undefined}
+         */
+        specCard: (object.constructor.name.toLowerCase() === "stack") ? object.getSpecCard(x, y) : undefined,
+
+        /**
+         * If dragging.object is a Stack, the index of the specific single card clicked, undefined otherwise
+         * @type {Number|undefined}
+         */
+        specCardIndex: (object.constructor.name.toLowerCase() === "stack") ? object.indexOf(object.getSpecCard(x, y)) : undefined,
+
+        /**
+         * Whether or not the card has actually been moved yet (if movemouse has been dispatched yet).
+         * Defaults to false, since the Object has not been moved when it has just been clicked.
+         * @type {Boolean}
+         */
+        draggedYet: false,
+
+        /**
+         * If the mouse is in any Object, the index of allObjects corresponding to the Object the mouse is in. If not, -1.
+         * @type {Number}
+         */
+        index: index,
+      };
+      console.log(dragging); // Logs the value for reference
+      if (allObjects[0] !== object) { // Detects if the Object is topmost Object (the first in the allObjects array)
+        allObjects.unshift(allObjects.splice(allObjects.indexOf(object), 1)[0]); // Gets index of the Card, splices it out of allObjects, then unshifts it to add it to the beginning, which basically moves it to the top
+      }
+      tick(); // Ticks once Card is determined. This is mainly to redraw the Card immediately so that if it was hidden below another Card, it would jump to the front (because of the directly above code) immediately instead of when you start moving it
     }
-    dragging = {
-
-      /**
-       * The type of Object being dragged. Can currently be "card", "stack", or "pile"
-       * @type {String}
-       */
-      type: type,
-
-      /**
-       * The Object being dragged.
-       * @type {Card|Stack|Pile}
-       */
-      object: object,
-
-      /**
-       * X value of the mouse
-       * @type {Number}
-       */
-      x: x,
-
-      /**
-       * Y value of the mouse
-       * @type {Number}
-       */
-      y: y,
-
-      /**
-       * The mouse down event that triggered the dragging
-       * @type {MouseEvent}
-       */
-      e: e,
-
-      /**
-       * The timestamp of the start of dragging
-       * @type {Number}
-       */
-      timeStamp: e.timeStamp,
-
-      /**
-       * True if this is a double click, false if not.
-       * @type {Boolean}
-       */
-      doubleClick: ((e.timeStamp - lastDragged.timeStamp) < 500) && (object === lastDragged.object),
-
-      /**
-       * The specific single card clicked in a Stack if dragging.object is a Stack, undefined otherwise
-       * @type {Card|undefined}
-       */
-      specCard: (object.constructor.name.toLowerCase() === "stack") ? object.getSpecCard(x, y) : undefined,
-
-      /**
-       * If dragging.object is a Stack, the index of the specific single card clicked, undefined otherwise
-       * @type {Number|undefined}
-       */
-      specCardIndex: (object.constructor.name.toLowerCase() === "stack") ? object.indexOf(object.getSpecCard(x, y)) : undefined,
-
-      /**
-       * Whether or not the card has actually been moved yet (if movemouse has been dispatched yet).
-       * Defaults to false, since the Object has not been moved when it has just been clicked.
-       * @type {Boolean}
-       */
-      draggedYet: false,
-
-      /**
-       * If the mouse is in any Object, the index of allObjects corresponding to the Object the mouse is in. If not, -1.
-       * @type {Number}
-       */
-      index: index,
-    };
-    console.log(dragging); // Logs the value for reference
-    if (allObjects[0] !== object) { // Detects if the Object is topmost Object (the first in the allObjects array)
-      allObjects.unshift(allObjects.splice(allObjects.indexOf(object), 1)[0]); // Gets index of the Card, splices it out of allObjects, then unshifts it to add it to the beginning, which basically moves it to the top
-    }
-    tick(); // Ticks once Card is determined. This is mainly to redraw the Card immediately so that if it was hidden below another Card, it would jump to the front (because of the directly above code) immediately instead of when you start moving it
   }
 });
 
@@ -691,6 +713,7 @@ canvas.addEventListener("mousemove", function(e) {
     dragging.y = e.clientY;
     if (!dragging.draggedYet) {
       if (dragging.type === "card") { // If a card is being dragged
+        // if first time card actions ever need to be taken
       } else if (dragging.type === "stack") { // If a Stack is being dragged
         if (dragging.doubleClick) { // If the Stack was double clicked
           console.log("first time double clicked stack");
@@ -699,6 +722,13 @@ canvas.addEventListener("mousemove", function(e) {
           let specCardIndex = dragging.specCardIndex;
           allObjects[0].flipped = allObjects[1].flipped;
           allObjects[0].direction = allObjects[1].direction;
+          if (allObjects[1].length === 1) {
+            allObjects[1][0].flipped = allObjects[1].flipped;
+            allObjects[1][0].direction = allObjects[1].direction;
+            allObjects[1][0].x = allObjects[1].x;
+            allObjects[1][0].y = allObjects[1].y;
+            allObjects.splice(1, 1, allObjects[1][0]);
+          }
           dragging = {
             type: "card",
             object: allObjects[0],
@@ -737,6 +767,13 @@ canvas.addEventListener("mousemove", function(e) {
           allObjects.unshift(dragging.object.shift());
           allObjects[0].flipped = allObjects[1].flipped;
           allObjects[0].direction = allObjects[1].direction;
+          if (allObjects[1].length === 1) {
+            allObjects[1][0].flipped = allObjects[1].flipped;
+            allObjects[1][0].direction = allObjects[1].direction;
+            allObjects[1][0].x = allObjects[1].x - 2;
+            allObjects[1][0].y = allObjects[1].y - 2;
+            allObjects.splice(1, 1, allObjects[1][0]);
+          }
           dragging = {
             type: "card",
             object: allObjects[0],
@@ -773,7 +810,8 @@ canvas.addEventListener("mousemove", function(e) {
       console.log("object type not recognized in mousemove", dragging);
     }
     if (dragging.type === "card") {
-      dragging.over = allObjects.find((a) => (a !== dragging.object && a.isIn(e.clientX, e.clientY)));
+      dragging.overIndex = allObjects.findIndex((a) => (a !== dragging.object && a.isIn(e.clientX, e.clientY)));
+      dragging.over = allObjects[dragging.overIndex];
       if (dragging.over) {
         if (dragging.over.constructor.name.toLowerCase() === "pile") {
           dragging.over.isOutline = true;
@@ -784,6 +822,16 @@ canvas.addEventListener("mousemove", function(e) {
             dragging.over.outlineIndex = dragging.over.length;
           } else {
             dragging.over.outlineIndex = overSpecCardIndex;
+          }
+        } else if (dragging.over.constructor.name.toLowerCase() === "card") {
+          let xDiff = dragging.object.x - dragging.over.x,
+            yDiff = dragging.object.y - dragging.over.y;
+          if (yDiff < 0.5 * dragging.over.height) {
+            if (22.5 <= xDiff && xDiff < 45) {
+              dragging.over.outline = "stack";
+            } else if (-22.5 <= xDiff && xDiff < 22.5) {
+              dragging.over.outline = "pile";
+            }
           }
         }
       }
@@ -807,6 +855,20 @@ canvas.addEventListener("mouseup", function() {
         }
         allObjects.splice(0, 1);
         tick();
+      } else if (dragging.over.constructor.name.toLowerCase() === "card") {
+        let xDiff = dragging.object.x - dragging.over.x,
+          yDiff = dragging.object.y - dragging.over.y;
+        if (yDiff < 0.5 * dragging.over.height) {
+          if (22.5 <= xDiff && xDiff < 45) {
+            allObjects.splice(0, 1, new Stack(dragging.over.x, dragging.over.y, allObjects.splice(dragging.overIndex, 1)[0], dragging.object));
+            allObjects[0].flipped = dragging.over.flipped;
+            allObjects[0].direction = dragging.over.direction;
+          } else if (-22.5 <= xDiff && xDiff < 22.5) {
+            allObjects.splice(0, 1, new Pile(dragging.over.x, dragging.over.y, allObjects.splice(dragging.overIndex, 1)[0], dragging.object));
+            allObjects[0].flipped = dragging.over.flipped;
+            allObjects[0].direction = dragging.over.direction;
+          }
+        }
       }
     }
     dragging = false;
