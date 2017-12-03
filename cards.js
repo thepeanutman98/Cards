@@ -98,7 +98,7 @@ const cards = getCards(["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k", ], ["h",
  *
  * @param  {CanvasRenderingContext2D=} [ctx=window.ctx] The ctx to clear. Defaults to window.ctx, the global ctx
  */
-function clearCanvas(ctx = window.ctx) {
+function clearCanvas() {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
@@ -132,7 +132,7 @@ function tick() {
 }
 
 /**
- * A basic data validator specificically to avoid problems when using 
+ * A basic data validator specificically to avoid problems when using
  * [].findIndex or [].indexOf since that returns -1 instead of an error.
  * @param  {Number} num     The number to check
  * @return {Number|NaN}     If the number is positive, the number; if not, NaN
