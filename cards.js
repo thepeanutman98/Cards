@@ -761,6 +761,16 @@ canvas.addEventListener("mouseup", function() {
   tick();
 });
 
+window.addEventListener("keypress", function(e) {
+  switch (e.key) {
+    case "d":
+      console.log(dragging);
+      break;
+    default:
+      console.log(e);
+  }
+});
+
 canvas.oncontextmenu=()=>(false); // Disables context menu
 
 cards.empty.addEventListener("load", function() { // When the final card (since empty is the last in the extras list in cards=getCards...) image is loaded
