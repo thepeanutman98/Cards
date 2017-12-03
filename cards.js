@@ -565,13 +565,29 @@ canvas.addEventListener("mousedown", function(e) {
    */
    object = allObjects[index];
   if (object) { // If the mouse is in an Object
+    let type = object.constructor.name.toLowerCase();
+    if (e.button === 0) { // left mouse button
+      if (object.flipped) {
+        if (type === "stack" || type === "pile") {
+          object.reverse();
+        }
+        object.flipped = false;
+      }
+    } else if (e.button === 2) { // right mouse button
+      if (!object.flipped) {
+        if (type === "stack" || type === "pile") {
+          object.reverse();
+        }
+        object.flipped = true;
+      }
+    }
     dragging = {
 
       /**
        * The type of Object being dragged. Can currently be "card", "stack", or "pile"
        * @type {String}
        */
-      type: object.constructor.name.toLowerCase(),
+      type: type,
 
       /**
        * The Object being dragged.
@@ -635,8 +651,6 @@ canvas.addEventListener("mousedown", function(e) {
       index: index,
     };
     console.log(dragging); // Logs the value for reference
-    /** @todo Add better logic probably for left/right mouse detection. The division -> boolean method works but is probably not the best */
-    object.flipped = Boolean(e.button / 2); // e.button will be 0 if left mouse click and 2 if right mouse click, so dividing by 2 makes it 0 if left click 1 if right click, and then converts it to a Boolean so flipped is false if left click and true if right click
     if (allObjects[0] !== object) { // Detects if the Object is topmost Object (the first in the allObjects array)
       allObjects.unshift(allObjects.splice(allObjects.indexOf(object), 1)[0]); // Gets index of the Card, splices it out of allObjects, then unshifts it to add it to the beginning, which basically moves it to the top
     }
