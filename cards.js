@@ -444,6 +444,19 @@ class Stack extends Array {
      */
     this.direction = 0;
 
+    /**
+     * Index of the Card at which an outline should be drawn, or false if none
+     * @type {Number|Boolean}
+     */
+    this.outlineIndex = false;
+
+    /**
+     * Whether or not to show an outline over where the last card would be if a
+     * card was added to the Stack.
+     * @type {Boolean}
+     */
+    this.lastOutline = false;
+
     if (typeof a[0] === "number") { // If x and y positions were specified
       this.x = a[0]; // Sets x to provided x value
       this.y = a[1]; // Sets y to provided y value
@@ -467,18 +480,32 @@ class Stack extends Array {
       ctx.rotate(this.direction); // Rotates Canvas about new origin
       this.forEach(function(a, b) { // Iterates through each Card in the Stack
         draw(this.flipped ? cards.back : a.image, (b * s * this[0].size), 0, this[0].size); // Draws the Card with proper distance apart
-        if (dragging.specCard && !dragging.doubleClick && a === dragging.specCard) {
-          draw(cards.outline, (b * s * this[0].size), 0, this[0].size); // Draws the Card with proper distance apart
+        if ((this.outlineIndex === b) || (dragging.specCard && !dragging.doubleClick && a === dragging.specCard)) {
+          draw(cards.outline, (b * s * this[0].size), 0, this[0].size); // Draws the outline
+          if (this.outlineIndex !== false) {
+            this.outlineIndex = false;
+          }
         }
       }, this);
+      if (this.lastOutline) {
+        draw(cards.outline, (this.length * s * this[0].size), 0, this[0].size); // Draws the last outline
+        this.lastOutline = false;
+      }
       ctx.restore(); // Resets rotation by restoring Canvas state
     } else { // If rotation is not neccessary
       this.forEach(function(a, b) { // Iterates through each Card in the Stack
         draw(this.flipped ? cards.back : a.image, this.x + (b * s * this[0].size), this.y, this[0].size); // Draws the Card with proper distance apart. this.x and this.y neccessary since Canvas origin is not being transalted
-        if (dragging.specCard && !dragging.doubleClick && a === dragging.specCard) {
+        if ((this.outlineIndex === b) || (dragging.specCard && !dragging.doubleClick && a === dragging.specCard)) {
           draw(cards.outline, this.x + (b * s * this[0].size), this.y, this[0].size); // Draws the Card with proper distance apart. this.x and this.y neccessary since Canvas origin is not being transalted
+          if (this.outlineIndex !== false) {
+            this.outlineIndex = false;
+          }
         }
       }, this);
+      if (this.lastOutline) {
+        draw(cards.outline, this.x + (this.length * s * this[0].size), this.y, this[0].size); // Draws the last outline
+        this.lastOutline = false;
+      }
     }
   }
 
@@ -503,12 +530,14 @@ class Stack extends Array {
 
   /**
    * Detects which Card in the Stack the (x,y) coordinate is inside
-   * @param  {Number}       x                  X coordinate of the point to check
-   * @param  {Number}       y                  Y coordinate of the point to check
-   * @param  {Boolean}      [checkIsIn=false]  Whether to check if point is in the Stack using isIn(x,y) first. This defaults to false, since this function would generally only be called after confirmation that the point is in the Stack
-   * @return {Card|Boolean}                    The Card in the Stack which the point is inside. If checkIsIn is true and if isIn is false, returns false. However, if checkIsIn is false (its default) and the point is not acutally inside the Stack, then this will likely return an error
+   * @param  {Number}       x                    X coordinate of the point to check
+   * @param  {Number}       y                    Y coordinate of the point to check
+   * @param  {Boolean}      [returnIndex=false]  True to return the numeric index, false (or blank) to return Card
+   * @param  {Boolean}      [scrub=true]         Whether or not to scrub return value by changing indices higher than the length to the top card. Only applicalbe if returnIndex is true, otherwise has no effect
+   * @param  {Boolean}      [checkIsIn=false]    Whether to check if point is in the Stack using isIn(x,y) first. This defaults to false, since this function would generally only be called after confirmation that the point is in the Stack
+   * @return {Card|Boolean}                      The Card in the Stack which the point is inside. If checkIsIn is true and if isIn is false, returns false. However, if checkIsIn is false (its default) and the point is not acutally inside the Stack, then this will likely return an error
    */
-  getSpecCard(x, y, checkIsIn = false) {
+  getSpecCard(x, y, returnIndex = false, scrub = true, checkIsIn = false) {
     if (checkIsIn) {
       if (!this.isIn(x, y)) {
         return false;
@@ -529,7 +558,11 @@ class Stack extends Array {
         index = Math.floor((this.y-y)/22.5);
         break;
     }
-    return this[index < this.length ? index : this.length - 1];
+    if (returnIndex) {
+      return scrub ? (index < this.length ? index : this.length - 1) : index;
+    } else {
+      return this[index < this.length ? index : this.length - 1];
+    }
   }
 }
 
@@ -749,12 +782,43 @@ canvas.addEventListener("mousemove", function(e) {
     } else {
       console.log("object type not recognized in mousemove", dragging);
     }
+    if (dragging.type === "card") {
+      dragging.over = allObjects.find((a) => (a !== dragging.object && a.isIn(e.clientX, e.clientY)));
+      if (dragging.over) {
+        if (dragging.over.constructor.name.toLowerCase() === "pile") {
+          dragging.over.isOutline = true;
+        } else if (dragging.over.constructor.name.toLowerCase() === "stack") {
+          let overSpecCardIndex = dragging.over.getSpecCard(e.clientX, e.clientY, true, false);
+          if (overSpecCardIndex > dragging.over.length) {
+            dragging.over.lastOutline = true;
+            dragging.over.outlineIndex = dragging.over.length;
+          } else {
+            dragging.over.outlineIndex = overSpecCardIndex;
+          }
+        }
+      }
+    }
     tick(); // Redraws position changes
   }
 });
 canvas.addEventListener("mouseup", function() {
   if (dragging) { // If something is being dragged (this would be false if the mouse was clicked on an empty spot in the Canvas)
     lastDragged = dragging;
+    if (dragging.over) {
+      if (dragging.over.constructor.name.toLowerCase() === "pile") {
+        dragging.over.unshift(allObjects[0]);
+        allObjects.splice(0, 1);
+      } else if (dragging.over.constructor.name.toLowerCase() === "stack") {
+        let overSpecCardIndex = dragging.over.getSpecCard(dragging.x, dragging.y, true, false);
+        dragging.over.splice(overSpecCardIndex > dragging.over.length ? dragging.over.length : overSpecCardIndex, 0, allObjects[0]);
+        if (dragging.over.lastOutline) {
+          dragging.over.outlineIndex = false;
+          dragging.over.lastOutline = false;
+        }
+        allObjects.splice(0, 1);
+        tick();
+      }
+    }
     dragging = false;
   }
   console.log(false); // Logs dragging for reference. Since dragging was just set to false if it was not already false, it will now be false, so false is logged instead
@@ -915,6 +979,12 @@ class Pile extends Array {
      */
     this.direction = 0;
 
+    /**
+     * Whether or not the outline should be drawn on top.
+     * @type {Boolean}
+     */
+    this.isOutline = false;
+
     if (typeof a[0] === "number") { // If x and y positions were specified
       this.x = a[0]; // Sets x to provided x value
       this.y = a[1]; // Sets y to provided y value
@@ -937,18 +1007,24 @@ class Pile extends Array {
         for (i of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
           draw(cards.empty, this.x - (i + 1) * 2, this.y - (i + 1) * 2);
         }
-        this[0].draw();
-        if (dragging.object === this && !dragging.doubleClick) {
+        draw(this.flipped ? cards.back : this[0].image, 0, 0, this[0].size);
+        if (this.isOutline || (dragging.object === this && !dragging.doubleClick)) {
           draw(cards.outline, this.x, this.y);
+          if (this.isOutline) {
+            this.isOutline = false;
+          }
         }
         ctx.restore();
       } else {
         for (let j of Array.from(Array(this.length > 5 ? 4 : this.length - 1).keys()).reverse()) {
           draw(cards.empty, this.x - (j + 1) * 2, this.y - (j + 1) * 2);
         }
-        this[0].draw();
-        if (dragging.object === this && !dragging.doubleClick) {
+        draw(this.flipped ? cards.back : this[0].image, this.x, this.y, this[0].size);
+        if (this.isOutline || (dragging.object === this && !dragging.doubleClick)) {
           draw(cards.outline, this.x, this.y);
+          if (this.isOutline) {
+            this.isOutline = false;
+          }
         }
       }
     }
