@@ -820,6 +820,9 @@ window.addEventListener("keypress", function(e) {
     case "d":
       console.log(dragging);
       break;
+    case "a":
+      console.log(allObjects);
+      break;
     default:
       console.log(e);
   }
