@@ -215,7 +215,15 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
    * @todo Add direction support
    */
   this.draw = function() {
-    draw(this.flipped ? cards.back : this.image, this.x, this.y, this.size);
+    if (this.direction) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.direction);
+      draw(this.flipped ? cards.back : this.image, 0, 0, this.size);
+      ctx.restore();
+    } else {
+      draw(this.flipped ? cards.back : this.image, this.x, this.y, this.size);
+    }
   };
 
   // Define getters and setters
@@ -247,7 +255,16 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
      */
     cornerX: {
       get: function() {
-        return this.x + this.width;
+        switch (this.direction) { // Different formulas depending on direction
+          case 0: // Facing forward
+            return this.x + this.width;
+          case Math.PI * 0.5: // Turned 90 deg clockwise
+            return this.x - this.height;
+          case Math.PI:  // Turned 180 degrees
+            return this.x - this.width;
+          case Math.PI * 1.5: // Turned 90 deg counterclockwise (270 clockwise)
+            return this.x + this.height;
+        }
       },
     },
 
@@ -258,7 +275,16 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
      */
     cornerY: {
       get: function() {
-        return this.y + this.height;
+        switch (this.direction) { // Different formulas depending on direction
+          case 0: // Facing forward
+            return this.y + this.height;
+          case Math.PI * 0.5: // Turned 90 deg clockwise
+            return this.y + this.width;
+          case Math.PI:  // Turned 180 degrees
+            return this.y - this.height;
+          case Math.PI * 1.5: // Turned 90 deg counterclockwise (270 clockwise)
+            return this.y - this.width;
+        }
       },
     },
   });
