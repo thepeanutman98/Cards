@@ -1105,8 +1105,6 @@ class Pile extends Array {
   }
 }
 
-allObjects.push(new Stack(600, 200, new Card("as"), new Card("ah"), new Card("ac"), new Card("ad")));
-
 /**
  * An Array holding one of each of a normal deck of Cards.
  * @type {Array<Card>}
@@ -1119,6 +1117,11 @@ for (let i of ["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k", ]) { // Iterates 
   }
 }
 
-allObjects.push(new Pile(300, 200, ...fullDeck));
-
-allObjects.push(new Card("ac", 77.5, 10), new Card("ad", 55, 10), new Card("ah", 32.5, 10), new Card("as", 10, 10)); // Adds samples spaced apart like a Stack (just similar in the distance between Cards)
+/**
+ * A Pile holding one of each of a normal deck of Cards
+ * @type {Pile}
+ */
+let fullDeckStack = new Pile(...fullDeck);
+fullDeckStack.x = (window.innerWidth - 111.5) / 2;
+fullDeckStack.y = (window.innerHeight - 162) / 2;
+allObjects.push(fullDeckStack);
