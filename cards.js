@@ -674,6 +674,8 @@ canvas.addEventListener("mousemove", function(e) {
         } else {
           allObjects.unshift(dragging.object.splice(dragging.specCardIndex, 1)[0]);
           let specCardIndex = dragging.specCardIndex;
+          allObjects[0].flipped = allObjects[1].flipped;
+          allObjects[0].direction = allObjects[1].direction;
           dragging = {
             type: "card",
             object: allObjects[0],
@@ -710,6 +712,8 @@ canvas.addEventListener("mousemove", function(e) {
           console.log("first double clicked pile");
         } else {
           allObjects.unshift(dragging.object.shift());
+          allObjects[0].flipped = allObjects[1].flipped;
+          allObjects[0].direction = allObjects[1].direction;
           dragging = {
             type: "card",
             object: allObjects[0],
