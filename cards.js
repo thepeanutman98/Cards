@@ -15,30 +15,6 @@ let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext('2d');
 
 /**
- * Array of all Cards
- * @type {Array<Card>}
- */
-let allCards = [];
-
-/**
- * Array of all Stacks
- * @type {Array<Stack>}
- */
-let allStacks = [];
-
-/**
- * Array of all Piles
- * @type {Array<Pile>}
- */
-let allPiles = [];
-
-/**
- * Array of all lone Cards (cards not in a Stack or Pile)
- * @type {Array<Card>}
- */
-let allLoneCards = [];
-
-/**
  * Array of all Objects (Cards, Stacks, and Piles) in order of top to bottom.
  * @type {Array}
  */
@@ -287,9 +263,6 @@ function Card(a, x = 0, y = 0, e = 0.5, d = cards) {
     },
   });
 
-  // Adds this Card to list of all Cards
-  allCards.push(this);
-
   /**
    * Detects whether a given point (x,y) is inside the Card.
    * @param  {Number} x  X coordinate of the point to check
@@ -335,8 +308,6 @@ class Stack extends Array {
    */
   constructor(...a) {
     super();  // Called to allow later call of pushing all specified Cards to this
-    allStacks.push(this); // Push this to array of allStacks for reference
-    allObjects.push(this); // Push this to array of allObjects for reference
     Object.defineProperties(this, { // Used to define getters and setters
       /**
        * Width of Stack used to calculate corner
@@ -535,12 +506,6 @@ class Stack extends Array {
     return this[index < this.length ? index : this.length - 1];
   }
 }
-
-/**
- * A sample Stack for testing
- * @type {Stack}
- */
-let test = new Stack(600, 200, new Card("as"), new Card("ah"), new Card("ac"), new Card("ad"));
 
 /**
  * Handler for mouse downs.
@@ -786,8 +751,6 @@ class Pile extends Array {
     */
   constructor(...a) {
     super();  // Called to allow later call of pushing all specified Cards to this
-    allPiles.push(this); // Push this to array of allStacks for reference
-    allObjects.push(this); // Push this to array of allObjects for reference
     Object.defineProperties(this, { // Used to define getters and setters
       /**
        * Width of Stack used to calculate corner
@@ -957,6 +920,8 @@ class Pile extends Array {
   }
 }
 
+allObjects.push(new Stack(600, 200, new Card("as"), new Card("ah"), new Card("ac"), new Card("ad")));
+
 /**
  * An Array holding one of each of a normal deck of Cards.
  * @type {Array<Card>}
@@ -969,11 +934,6 @@ for (let i of ["a", 2, 3, 4, 5, 6, 7, 8, 9, 10, "j", "q", "k", ]) { // Iterates 
   }
 }
 
-/**
- * Creates sample Pile with (x,y) position of (300,200) (just a place away from
- * other samples) with the fullDeck of Cards
- * @type {Pile}
- */
-let tester = new Pile(300, 200, ...fullDeck);
+allObjects.push(new Pile(300, 200, ...fullDeck));
 
 allObjects.push(new Card("ac", 77.5, 10), new Card("ad", 55, 10), new Card("ah", 32.5, 10), new Card("as", 10, 10)); // Adds samples spaced apart like a Stack (just similar in the distance between Cards)
